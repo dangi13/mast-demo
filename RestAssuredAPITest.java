@@ -1,22 +1,35 @@
 package mast.api.test.mast;
 
+import static io.restassured.RestAssured.given;
+
+import java.util.Map;
+
 import io.restassured.RestAssured;
-import io.restassured.http.Method;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import mast.api.utils.common.Config;
 
 public class RestAssuredAPITest {
  
 	
 	public static void main(String[] args) {
-		// Specify the base URL to the RESTful web service 
 		RestAssured.baseURI = "https://gist.githubusercontent.com/kumarpani/1e759f27ae302be92ad51ec09955e765/raw/184cef7125e6ef5a774e60de31479bb9b2884cb5/TeamRCB.json"; 
-		// Get the RequestSpecification of the request to be sent to the server. 
-		RequestSpecification httpRequest = RestAssured.given(); 
-		// specify the method type (GET) and the parameters if any. 
-		//In this case the request does not take any parameters 
-		Response response = httpRequest.request(Method.GET, "");
-		// Print the status and message body of the response received from the server 
+		RequestSpecification requestSpecification = RestAssured.given(); 
+		Map<String, String> authParams = Map.of("grant_type", Config.getProperty("GRANT_TYPE"), 
+				"audience", Config.getProperty("AUDIENCE"), 
+                "clientSecret", Config.getProperty("CLIENT_SECRET"),
+                "client_id", Config.getProperty("CLIENT_ID")); 
+		requestSpecification.formParams(authParams);
+		
+		Response response = given().log().all()
+        .spec(requestSpecification)
+        .when()
+        .post()
+        .then()
+        .and()
+        .extract()
+        .response();
+		
 		System.out.println("Status received => " + response.getStatusLine()); 
 		System.out.println("Response=>" + response.prettyPrint());
 	}
